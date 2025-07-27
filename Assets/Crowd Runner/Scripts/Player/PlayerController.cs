@@ -20,6 +20,12 @@ public class PlayerController : MonoBehaviour
     private Vector3 clickedScreenPosition;
     private Vector3 clickedPlayerPosition;
 
+    [Header(" Hard Mode Settings ")]
+    [SerializeField] private float hardModeSpeedMultiplier = 1.5f;
+    private bool isHardMode = false;
+    private float originalMoveSpeed;
+    private float originalSlideSpeed;
+
     private void Awake()
     {
         if (instance != null)
@@ -32,6 +38,28 @@ public class PlayerController : MonoBehaviour
     void Start()
     {
         GameManager.onGameStateChanged += GameStateChangedCallback;
+        
+        // Store original speeds
+        originalMoveSpeed = moveSpeed;
+        originalSlideSpeed = slideSpeed;
+        
+        // Check if hard mode is enabled
+        isHardMode = PlayerPrefs.GetInt("HardMode", 0) == 1;
+        
+        Debug.Log("PlayerController - Hard Mode: " + isHardMode);
+        Debug.Log("PlayerController - Original moveSpeed: " + moveSpeed);
+        Debug.Log("PlayerController - Original slideSpeed: " + slideSpeed);
+        
+        // Apply hard mode speed multiplier if enabled
+        if (isHardMode)
+        {
+            moveSpeed *= hardModeSpeedMultiplier;
+            slideSpeed *= hardModeSpeedMultiplier;
+            
+            Debug.Log("PlayerController - Hard Mode Applied!");
+            Debug.Log("PlayerController - New moveSpeed: " + moveSpeed);
+            Debug.Log("PlayerController - New slideSpeed: " + slideSpeed);
+        }
     }
 
     private void OnDestroy()
@@ -100,5 +128,33 @@ public class PlayerController : MonoBehaviour
 
             //transform.position = clickedPlayerPosition + Vector3.right * xScreenDifference;
         }
+    }
+
+    public bool IsHardMode()
+    {
+        return isHardMode;
+    }
+    
+    public void ToggleHardMode()
+    {
+        isHardMode = !isHardMode;
+        
+        if (isHardMode)
+        {
+            // Apply hard mode speeds
+            moveSpeed = originalMoveSpeed * hardModeSpeedMultiplier;
+            slideSpeed = originalSlideSpeed * hardModeSpeedMultiplier;
+            Debug.Log("PlayerController - Hard Mode Enabled! Speed: " + moveSpeed);
+        }
+        else
+        {
+            // Restore normal speeds
+            moveSpeed = originalMoveSpeed;
+            slideSpeed = originalSlideSpeed;
+            Debug.Log("PlayerController - Normal Mode Enabled! Speed: " + moveSpeed);
+        }
+        
+        // Save the state
+        PlayerPrefs.SetInt("HardMode", isHardMode ? 1 : 0);
     }
 }
